@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ArenaHub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f2fb;--ink:#1b1740;--mu:#6b6791;--card:#fff;--ac:#5b3df5;--co:#ff5a4e;--te:#12a89d;--ln:#e0dcf3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Trebuchet MS",system-ui,sans-serif}
+header{background:var(--ink);color:#fff;padding:18px 28px 0}
+h1{margin:0 0 12px;font-size:26px;font-weight:800;letter-spacing:-.5px}
+h1 em{font-style:normal;color:#ffb4ad}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;color:#bdb8e6;padding:10px 16px;font:inherit;cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:#fff;border-color:var(--co);font-weight:700}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+main{max-width:1100px;margin:24px auto;padding:0 20px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:18px;margin-bottom:20px}
+h2{margin:0 0 12px;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+label{font-size:13px;color:var(--mu);display:flex;flex-direction:column;gap:4px}
+input,select{padding:9px;border:1px solid var(--ln);border-radius:6px;font:inherit;background:#fff}
+button.p{background:var(--ac);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}
+button.s{background:none;border:1px solid var(--ln);border-radius:6px;padding:4px 10px;cursor:pointer;font:inherit}
+button.d{color:var(--co);border-color:var(--co)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ln);white-space:nowrap}
+th{font-size:13px;color:var(--mu)}
+.big{font-size:34px;font-weight:800;color:var(--ac)}
+pre{background:var(--ink);color:#e8e5ff;padding:14px;border-radius:8px;overflow-x:auto;font-size:13px}
+.empty{color:var(--mu)}
+</style></head><body>
+<header><h1>Arena<em>Hub</em></h1><nav id="nav"></nav></header>
+<main id="main"></main>
+<script>
+const GAMES=['Valorant','BGMI','FIFA','CS2'];
+const CFG={
+ players:[['name','text'],['gamerTag','text'],['game','game'],['teamId','ref:teams'],['rating','number'],['stats','kv']],
+ teams:[['name','text'],['game','game'],['city','text']],
+ tournaments:[['name','text'],['game','game'],['format','sel:Round Robin|Single Elimination'],['prizePool','number'],['startDate','date']],
+ matches:[['tournamentId','ref:tournaments'],['teamA','ref:teams'],['teamB','ref:teams'],['scoreA','number'],['scoreB','number'],['playedAt','date']]
+};
+const TABS=['dashboard','players','teams','tournaments','matches','viva lab'];
+const $=s=>document.querySelector(s);
+const api=(u,m,b)=>fetch('/api/'+u,m?{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)}:undefined).then(r=>r.json());
+let D={},editing=null,charts=[];
+const label=(c,id)=>{const x=(D[c]||[]).find(x=>x._id===id);return x?(x.name||x.gamerTag):'-'};
+const kvs=o=>Object.entries(o||{}).map(e=>e.join('=')).join(', ');
+
+function nav(){$('#nav').innerHTML=TABS.map(t=>`<button data-t="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
+ $('#nav').onclick=e=>e.target.dataset.t&&show(e.target.dataset.t)}
+async function show(t){
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ charts.forEach(c=>c.destroy());charts=[];editing=null;
+ for(const c in CFG)D[c]=await api(c);
+ if(CFG[t])crud(t);else if(t==='dashboard')dash();else lab();
+}
+function field([n,t]){
+ if(t==='game'||t.startsWith('sel:')){const o=t==='game'?GAMES:t.slice(4).split('|');
+  return `<label>${n}<select name="${n}">${o.map(x=>`<option>${x}</option>`).join('')}</select></label>`}
+ if(t.startsWith('ref:'))return `<label>${n.replace('Id','')}<select name="${n}"><option value="">Choose…</option>${D[t.slice(4)].map(x=>`<option value="${x._id}">${x.name}</option>`).join('')}</select></label>`;
+ if(t==='kv')return `<label>stats (key=value, comma separated)<input name="${n}" placeholder="agent=Jett, headshotPct=32"></label>`;
+ return `<label>${n}<input name="${n}" type="${t}" ${t==='number'?'step="any"':''}></label>`;
+}
+function cell([n,t],r){const v=r[n];
+ if(t.startsWith('ref:'))return label(t.slice(4),v);
+ if(t==='kv')return kvs(v); if(t==='date')return v?v.slice(0,10):'-'; return v??'-'}
+function crud(col){
+ const f=CFG[col];
+ $('#main').innerHTML=`<div class="card"><h2 id="ft">Add ${col.slice(0,-1)}</h2><form id="f">${f.map(field).join('')}
+ <button class="p" type="submit">Save</button></form></div>
+ <div class="card tw">${D[col].length?`<table><tr>${f.map(x=>`<th>${x[0]}</th>`).join('')}<th></th></tr>
+ ${D[col].map((r,i)=>`<tr>${f.map(x=>`<td>${cell(x,r)}</td>`).join('')}<td><button class="s" data-e="${i}">Edit</button>
+ <button class="s d" data-x="${i}">Delete</button></td></tr>`).join('')}</table>`:'<p class="empty">Nothing here yet. Use the form above to add the first entry.</p>'}</div>`;
+ $('#f').onsubmit=async e=>{e.preventDefault();const o=collect(col,e.target);
+  editing?await api(`${col}/${editing}`,'PUT',o):await api(col,'POST',o);show(col)};
+ $('.tw').onclick=async e=>{const r=D[col][e.target.dataset.e??e.target.dataset.x];if(!r)return;
+  if(e.target.dataset.x!==undefined){if(confirm('Delete this record?')){await api(`${col}/${r._id}`,'DELETE');show(col)}return}
+  editing=r._id;$('#ft').textContent='Edit '+col.slice(0,-1);
+  f.forEach(([n,t])=>{const v=r[n];$('#f')[n].value=t==='kv'?kvs(v):t==='date'?(v||'').slice(0,10):v??''});scrollTo(0,0)};
+}
+function collect(col,form){const o={};
+ for(const [n,t] of CFG[col]){let v=form[n].value;
+  if(t==='number')v=v===''?null:+v;
+  else if(t==='kv'){const s={};v.split(',').forEach(p=>{const [k,x]=p.split('=');if(k&&x!==undefined)s[k.trim()]=isNaN(x)?x.trim():+x});v=s}
+  else if(t.startsWith('ref:'))v=v||null;
+  o[n]=v}
+ if(col==='matches')o.winnerId=o.scoreA>o.scoreB?o.teamA:o.scoreB>o.scoreA?o.teamB:null;
+ return o}
+
+const table=(rows,cols)=>rows.length?`<div class="tw"><table><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]??'-'}</td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="empty">No data yet. Run npm run seed or add matches.</p>';
+const chart=(id,type,labels,data,lab)=>charts.push(new Chart($('#'+id),{type,data:{labels,datasets:[{label:lab,data,backgroundColor:['#5b3df5','#ff5a4e','#12a89d','#f5b83d','#8a7cf8']}]},options:{plugins:{legend:{display:type==='doughnut'}}}}));
+
+async function dash(){
+ const [lt,lp,bg,wk,tiers]=await Promise.all([api('leaderboard/teams'),api('leaderboard/players'),api('analytics/by-game'),api('olap?level=week'),api('mining/tiers')]);
+ $('#main').innerHTML=`<div class="grid"><div class="card"><div class="big">${D.matches.length}</div>matches played across ${D.tournaments.length} tournaments</div>
+ <div class="card"><div class="big">${D.players.length}</div>players in ${D.teams.length} teams</div></div>
+ <div class="grid"><div class="card"><h2>Top teams by wins</h2>${table(lt,['team','game','wins'])}</div>
+ <div class="card"><h2>Top players by rating</h2>${table(lp,['gamerTag','game','team','rating'])}</div></div>
+ <div class="grid"><div class="card"><h2>Matches per game</h2><canvas id="c1"></canvas></div>
+ <div class="card"><h2>Matches per week</h2><canvas id="c2"></canvas></div>
+ <div class="card"><h2>Player skill tiers</h2><canvas id="c3"></canvas></div></div>`;
+ chart('c1','bar',bg.map(x=>x._id),bg.map(x=>x.matches),'Matches');
+ chart('c2','line',wk.map(x=>x._id),wk.map(x=>x.matches),'Matches');
+ chart('c3','doughnut',tiers.map(x=>x.tier),tiers.map(x=>x.players),'Players');
+}
+async function lab(){
+ $('#main').innerHTML=`<div class="card"><h2>OLAP roll-up (star schema)</h2>
+ <form id="o"><label>Level<select name="level"><option>day</option><option selected>week</option><option>month</option></select></label>
+ <label>Game (slice)<select name="game"><option value="">All games</option>${GAMES.map(g=>`<option>${g}</option>`).join('')}</select></label>
+ <button class="p" type="submit">Run roll-up</button></form><div id="or"></div></div>
+ <div class="card"><h2>Index proof with explain()</h2><button class="p" id="ex">Compare with and without index</button><pre id="exo">Press the button to run the query plan.</pre></div>
+ <div class="card"><h2>Star schema</h2><pre>
+            dim_game(game)        dim_time(day, week, month)
+                  \\                  /
+  dim_team  ---  FACT_MATCH(tournamentId, teamA, teamB, scoreA, scoreB, winnerId, playedAt)
+                  /
+        dim_tournament(name, format, prizePool)</pre></div>`;
+ $('#o').onsubmit=async e=>{e.preventDefault();const f=e.target;
+  const r=await api(`olap?level=${f.level.value}&game=${f.game.value}`);
+  $('#or').innerHTML=table(r.map(x=>({period:x._id,matches:x.matches})),['period','matches'])};
+ $('#ex').onclick=async()=>{const r=await api('explain');
+  $('#exo').textContent=`WITH index    -> ${r.withIndex.plan}, docs examined: ${r.withIndex.docsExamined}, returned: ${r.withIndex.returned}\nWITHOUT index -> ${r.withoutIndex.plan}, docs examined: ${r.withoutIndex.docsExamined}, returned: ${r.withoutIndex.returned}`};
+}
+nav();show('dashboard');
+</script></body></html>
