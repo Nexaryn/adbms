@@ -1,116 +1,102 @@
-// ArenaHub backend: Express + MongoDB native driver
 const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const path = require('path');
 
-const URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017';
-const client = new MongoClient(URI);
-let db;
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const h = f => (q, s, n) => f(q, s, n).catch(e => s.status(500).json({ error: e.message }));
-// which fields in each collection are references (ObjectId) / dates
-const REFS = { players: ['teamId'], teams: [], tournaments: [], matches: ['tournamentId', 'teamA', 'teamB', 'winnerId'] };
-const DATES = ['startDate', 'playedAt'];
-const clean = (col, body) => {
-  const d = { ...body }; delete d._id;
-  REFS[col].forEach(f => { d[f] = d[f] ? new ObjectId(d[f]) : null; });
-  DATES.forEach(f => { if (d[f]) d[f] = new Date(d[f]); });
-  return d;
-};
+mongoose
+  .connect(process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/esports_hub')
+  .then(() => console.log('MongoDB connected'))
+  .catch((e) => console.error('MongoDB error:', e.message));
 
-// ---------- Analytics (aggregation pipelines) ----------
-app.get('/api/leaderboard/teams', h(async (q, s) => {
-  s.json(await db.collection('matches').aggregate([
-    { $match: { winnerId: { $ne: null } } },
-    { $group: { _id: '$winnerId', wins: { $sum: 1 } } },
-    { $sort: { wins: -1 } }, { $limit: 10 },
+/* ---------- Collections ---------- */
+const Team = mongoose.model('Team', new mongoose.Schema({
+  name: { type: String, required: true, unique: true },   // unique index
+  game: { type: String, required: true },
+  captain: String,
+  country: String,
+  players: [String],                                      // embedded array
+}));
+
+const Tournament = mongoose.model('Tournament', new mongoose.Schema({
+  name: { type: String, required: true },
+  game: { type: String, required: true },
+  startDate: Date,
+  prizePool: { type: Number, default: 0 },
+  status: { type: String, enum: ['Upcoming', 'Live', 'Finished'], default: 'Upcoming' },
+}));
+
+const matchSchema = new mongoose.Schema({
+  tournament: { type: mongoose.Schema.Types.ObjectId, ref: 'Tournament', required: true }, // reference
+  teamA: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
+  teamB: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
+  scoreA: { type: Number, default: 0 },
+  scoreB: { type: Number, default: 0 },
+  playedOn: Date,
+});
+matchSchema.index({ tournament: 1 }); // speeds up per-tournament queries
+const Match = mongoose.model('Match', matchSchema);
+
+/* ---------- Generic CRUD routes ---------- */
+function crud(name, Model, populate = '', afterDelete) {
+  const r = express.Router();
+  const fail = (res, e) => res.status(400).json({ error: e.message });
+
+  r.get('/', async (req, res) => {                                   // READ
+    res.json(await Model.find(req.query).populate(populate));
+  });
+  r.post('/', async (req, res) => {                                  // CREATE
+    try { res.status(201).json(await Model.create(req.body)); } catch (e) { fail(res, e); }
+  });
+  r.put('/:id', async (req, res) => {                                // UPDATE
+    try {
+      res.json(await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }));
+    } catch (e) { fail(res, e); }
+  });
+  r.delete('/:id', async (req, res) => {                             // DELETE
+    try {
+      await Model.findByIdAndDelete(req.params.id);
+      if (afterDelete) await afterDelete(req.params.id);
+      res.json({ ok: true });
+    } catch (e) { fail(res, e); }
+  });
+  app.use('/api/' + name, r);
+}
+
+crud('teams', Team, '', (id) => Match.deleteMany({ $or: [{ teamA: id }, { teamB: id }] }));
+crud('tournaments', Tournament, '', (id) => Match.deleteMany({ tournament: id }));
+crud('matches', Match, 'tournament teamA teamB');
+
+/* ---------- Leaderboard: aggregation pipeline ---------- */
+// Win = 3 points, draw = 1, loss = 0. Each match becomes two rows (one per team), then grouped by team.
+app.get('/api/leaderboard/:tid', async (req, res) => {
+  const pts = (a, b) => ({ $cond: [{ $gt: [a, b] }, 3, { $cond: [{ $eq: [a, b] }, 1, 0] }] });
+  const won = (a, b) => ({ $cond: [{ $gt: [a, b] }, 1, 0] });
+
+  const rows = await Match.aggregate([
+    { $match: { tournament: new mongoose.Types.ObjectId(req.params.tid) } },
+    { $project: { rows: [
+      { team: '$teamA', pts: pts('$scoreA', '$scoreB'), won: won('$scoreA', '$scoreB'), f: '$scoreA', a: '$scoreB' },
+      { team: '$teamB', pts: pts('$scoreB', '$scoreA'), won: won('$scoreB', '$scoreA'), f: '$scoreB', a: '$scoreA' },
+    ] } },
+    { $unwind: '$rows' },
+    { $group: {
+      _id: '$rows.team',
+      played: { $sum: 1 },
+      wins: { $sum: '$rows.won' },
+      points: { $sum: '$rows.pts' },
+      scored: { $sum: '$rows.f' },
+      conceded: { $sum: '$rows.a' },
+    } },
     { $lookup: { from: 'teams', localField: '_id', foreignField: '_id', as: 'team' } },
     { $unwind: '$team' },
-    { $project: { _id: 0, team: '$team.name', game: '$team.game', wins: 1 } }
-  ]).toArray());
-}));
+    { $project: { name: '$team.name', played: 1, wins: 1, points: 1, diff: { $subtract: ['$scored', '$conceded'] } } },
+    { $sort: { points: -1, diff: -1 } },
+  ]);
+  res.json(rows);
+});
 
-app.get('/api/leaderboard/players', h(async (q, s) => {
-  s.json(await db.collection('players').aggregate([
-    { $sort: { rating: -1 } }, { $limit: 10 },
-    { $lookup: { from: 'teams', localField: 'teamId', foreignField: '_id', as: 'team' } },
-    { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
-    { $project: { _id: 0, gamerTag: 1, game: 1, rating: 1, team: '$team.name' } }
-  ]).toArray());
-}));
-
-// Star schema: fact = matches, dimension = tournaments(game) + time. Roll-up by day/week/month.
-app.get('/api/olap', h(async (q, s) => {
-  const fmt = { day: '%Y-%m-%d', week: '%G-W%V', month: '%Y-%m' }[q.query.level] || '%Y-%m-%d';
-  const p = [
-    { $lookup: { from: 'tournaments', localField: 'tournamentId', foreignField: '_id', as: 't' } },
-    { $unwind: '$t' }
-  ];
-  if (q.query.game) p.push({ $match: { 't.game': q.query.game } });
-  p.push({ $group: { _id: { $dateToString: { format: fmt, date: '$playedAt' } }, matches: { $sum: 1 } } }, { $sort: { _id: 1 } });
-  s.json(await db.collection('matches').aggregate(p).toArray());
-}));
-
-app.get('/api/analytics/by-game', h(async (q, s) => {
-  s.json(await db.collection('matches').aggregate([
-    { $lookup: { from: 'tournaments', localField: 'tournamentId', foreignField: '_id', as: 't' } },
-    { $unwind: '$t' },
-    { $group: { _id: '$t.game', matches: { $sum: 1 } } }, { $sort: { matches: -1 } }
-  ]).toArray());
-}));
-
-// Data mining (descriptive): group players into skill tiers by rating
-app.get('/api/mining/tiers', h(async (q, s) => {
-  const names = { 0: 'Bronze', 1000: 'Silver', 1500: 'Gold', 2000: 'Diamond' };
-  const r = await db.collection('players').aggregate([
-    { $bucket: { groupBy: '$rating', boundaries: [0, 1000, 1500, 2000, 100000], default: 'Unrated',
-      output: { players: { $sum: 1 }, avgRating: { $avg: '$rating' } } } }
-  ]).toArray();
-  s.json(r.map(x => ({ tier: names[x._id] || 'Unrated', players: x.players, avgRating: Math.round(x.avgRating || 0) })));
-}));
-
-// explain(): same query with and without index
-app.get('/api/explain', h(async (q, s) => {
-  const run = async hint => {
-    let c = db.collection('players').find({ game: 'Valorant' }).sort({ rating: -1 });
-    if (hint) c = c.hint(hint);
-    const e = await c.explain('executionStats');
-    const m = JSON.stringify(e.queryPlanner.winningPlan).match(/"indexName":"([^"]+)"/);
-    return { plan: m ? 'IXSCAN (' + m[1] + ')' : 'COLLSCAN', docsExamined: e.executionStats.totalDocsExamined, returned: e.executionStats.nReturned };
-  };
-  s.json({ withIndex: await run(), withoutIndex: await run({ $natural: 1 }) });
-}));
-
-// ---------- Generic CRUD ----------
-app.get('/api/:col', h(async (q, s, n) => {
-  const col = q.params.col; if (!REFS[col]) return n();
-  const f = {};
-  if (q.query.game) f.game = q.query.game;
-  if (q.query.q && col === 'players') f.$text = { $search: q.query.q };
-  s.json(await db.collection(col).find(f).sort({ _id: -1 }).toArray());
-}));
-app.post('/api/:col', h(async (q, s, n) => {
-  const col = q.params.col; if (!REFS[col]) return n();
-  s.json(await db.collection(col).insertOne(clean(col, q.body)));
-}));
-app.put('/api/:col/:id', h(async (q, s, n) => {
-  const col = q.params.col; if (!REFS[col]) return n();
-  s.json(await db.collection(col).updateOne({ _id: new ObjectId(q.params.id) }, { $set: clean(col, q.body) }));
-}));
-app.delete('/api/:col/:id', h(async (q, s, n) => {
-  const col = q.params.col; if (!REFS[col]) return n();
-  s.json(await db.collection(col).deleteOne({ _id: new ObjectId(q.params.id) }));
-}));
-
-(async () => {
-  await client.connect();
-  db = client.db('arenahub');
-  await db.collection('players').createIndex({ game: 1, rating: -1 });
-  await db.collection('players').createIndex({ name: 'text', gamerTag: 'text' });
-  await db.collection('matches').createIndex({ tournamentId: 1, playedAt: -1 });
-  await db.collection('matches').createIndex({ winnerId: 1 });
-  app.listen(3000, () => console.log('ArenaHub running at http://localhost:3000'));
-})();
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('Open http://localhost:' + PORT));
