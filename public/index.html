@@ -1,127 +1,187 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ArenaHub</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bracket Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f2fb;--ink:#1b1740;--mu:#6b6791;--card:#fff;--ac:#5b3df5;--co:#ff5a4e;--te:#12a89d;--ln:#e0dcf3}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Trebuchet MS",system-ui,sans-serif}
-header{background:var(--ink);color:#fff;padding:18px 28px 0}
-h1{margin:0 0 12px;font-size:26px;font-weight:800;letter-spacing:-.5px}
-h1 em{font-style:normal;color:#ffb4ad}
-nav{display:flex;gap:4px;flex-wrap:wrap}
-nav button{background:none;border:0;color:#bdb8e6;padding:10px 16px;font:inherit;cursor:pointer;border-bottom:3px solid transparent}
-nav button.on{color:#fff;border-color:var(--co);font-weight:700}
-nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
-main{max-width:1100px;margin:24px auto;padding:0 20px}
-.card{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:18px;margin-bottom:20px}
-h2{margin:0 0 12px;font-size:18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
-label{font-size:13px;color:var(--mu);display:flex;flex-direction:column;gap:4px}
-input,select{padding:9px;border:1px solid var(--ln);border-radius:6px;font:inherit;background:#fff}
-button.p{background:var(--ac);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}
-button.s{background:none;border:1px solid var(--ln);border-radius:6px;padding:4px 10px;cursor:pointer;font:inherit}
-button.d{color:var(--co);border-color:var(--co)}
-.tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ln);white-space:nowrap}
-th{font-size:13px;color:var(--mu)}
-.big{font-size:34px;font-weight:800;color:var(--ac)}
-pre{background:var(--ink);color:#e8e5ff;padding:14px;border-radius:8px;overflow-x:auto;font-size:13px}
-.empty{color:var(--mu)}
-</style></head><body>
-<header><h1>Arena<em>Hub</em></h1><nav id="nav"></nav></header>
+  :root { --bg:#e8edf5; --panel:#ffffff; --ink:#14213d; --muted:#5b6784; --line:#cfd8e6; --blue:#2f5bff; --red:#e63e5c; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Barlow',system-ui,sans-serif; line-height:1.5; }
+  header { background:var(--ink); color:#fff; padding:20px 32px 0; }
+  h1 { font-family:'Barlow Condensed',sans-serif; font-size:44px; margin:0; letter-spacing:.5px; }
+  h1 span { color:#8fa6ff; }
+  nav { display:flex; gap:4px; margin-top:14px; flex-wrap:wrap; }
+  nav button { background:none; border:0; color:#aab6d6; font:600 20px 'Barlow Condensed',sans-serif; padding:10px 18px; cursor:pointer; border-bottom:4px solid transparent; }
+  nav button.on { color:#fff; border-color:var(--red); }
+  nav button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+  main { max-width:1100px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:320px 1fr; gap:24px; }
+  @media (max-width:800px) { main { grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:20px; }
+  h2 { font-family:'Barlow Condensed',sans-serif; font-size:26px; margin:0 0 14px; }
+  label { display:block; font-size:14px; color:var(--muted); margin:10px 0 4px; }
+  input, select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px; font:inherit; background:#fff; }
+  .btn { background:var(--blue); color:#fff; border:0; border-radius:4px; padding:10px 18px; font:600 16px 'Barlow',sans-serif; cursor:pointer; margin-top:16px; }
+  .btn.ghost { background:none; color:var(--muted); border:1px solid var(--line); margin-left:6px; }
+  .tbl { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:14px; color:var(--muted); font-weight:500; padding:8px; border-bottom:2px solid var(--line); }
+  td { padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .link { background:none; border:0; color:var(--blue); cursor:pointer; font:inherit; padding:0 6px 0 0; }
+  .link.del { color:var(--red); }
+  .empty { color:var(--muted); padding:24px 8px; }
+  .err { color:var(--red); margin-top:10px; font-size:14px; min-height:20px; }
+  .rank td:first-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; width:40px; }
+  .pts { font-weight:700; }
+  .full { grid-column:1 / -1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bracket<span>Hub</span></h1>
+  <nav id="nav"></nav>
+</header>
 <main id="main"></main>
+
 <script>
-const GAMES=['Valorant','BGMI','FIFA','CS2'];
-const CFG={
- players:[['name','text'],['gamerTag','text'],['game','game'],['teamId','ref:teams'],['rating','number'],['stats','kv']],
- teams:[['name','text'],['game','game'],['city','text']],
- tournaments:[['name','text'],['game','game'],['format','sel:Round Robin|Single Elimination'],['prizePool','number'],['startDate','date']],
- matches:[['tournamentId','ref:tournaments'],['teamA','ref:teams'],['teamB','ref:teams'],['scoreA','number'],['scoreB','number'],['playedAt','date']]
+/* ---- What each tab manages ---- */
+const R = {
+  teams: {
+    title: 'Teams', one: 'team',
+    fields: [
+      { k:'name', l:'Team name' }, { k:'game', l:'Game' }, { k:'captain', l:'Captain' },
+      { k:'country', l:'Country' }, { k:'players', l:'Players (comma separated)', t:'list' },
+    ],
+    heads: ['Team','Game','Captain','Country','Players'],
+    row: x => [x.name, x.game, x.captain, x.country, (x.players||[]).join(', ')],
+  },
+  tournaments: {
+    title: 'Tournaments', one: 'tournament',
+    fields: [
+      { k:'name', l:'Tournament name' }, { k:'game', l:'Game' },
+      { k:'startDate', l:'Start date', t:'date' }, { k:'prizePool', l:'Prize pool (₹)', t:'number' },
+      { k:'status', l:'Status', t:'choice', opts:['Upcoming','Live','Finished'] },
+    ],
+    heads: ['Tournament','Game','Starts','Prize pool','Status'],
+    row: x => [x.name, x.game, (x.startDate||'').slice(0,10), '₹' + (x.prizePool||0).toLocaleString('en-IN'), x.status],
+  },
+  matches: {
+    title: 'Matches', one: 'match',
+    fields: [
+      { k:'tournament', l:'Tournament', t:'ref', from:'tournaments' },
+      { k:'teamA', l:'Team A', t:'ref', from:'teams' }, { k:'scoreA', l:'Team A score', t:'number' },
+      { k:'teamB', l:'Team B', t:'ref', from:'teams' }, { k:'scoreB', l:'Team B score', t:'number' },
+      { k:'playedOn', l:'Played on', t:'date' },
+    ],
+    heads: ['Tournament','Match','Score','Date'],
+    row: x => [x.tournament?.name || '-', (x.teamA?.name||'-') + ' vs ' + (x.teamB?.name||'-'), x.scoreA + ' : ' + x.scoreB, (x.playedOn||'').slice(0,10)],
+  },
 };
-const TABS=['dashboard','players','teams','tournaments','matches','viva lab'];
-const $=s=>document.querySelector(s);
-const api=(u,m,b)=>fetch('/api/'+u,m?{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)}:undefined).then(r=>r.json());
-let D={},editing=null,charts=[];
-const label=(c,id)=>{const x=(D[c]||[]).find(x=>x._id===id);return x?(x.name||x.gamerTag):'-'};
-const kvs=o=>Object.entries(o||{}).map(e=>e.join('=')).join(', ');
 
-function nav(){$('#nav').innerHTML=TABS.map(t=>`<button data-t="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
- $('#nav').onclick=e=>e.target.dataset.t&&show(e.target.dataset.t)}
-async function show(t){
- document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
- charts.forEach(c=>c.destroy());charts=[];editing=null;
- for(const c in CFG)D[c]=await api(c);
- if(CFG[t])crud(t);else if(t==='dashboard')dash();else lab();
-}
-function field([n,t]){
- if(t==='game'||t.startsWith('sel:')){const o=t==='game'?GAMES:t.slice(4).split('|');
-  return `<label>${n}<select name="${n}">${o.map(x=>`<option>${x}</option>`).join('')}</select></label>`}
- if(t.startsWith('ref:'))return `<label>${n.replace('Id','')}<select name="${n}"><option value="">Choose…</option>${D[t.slice(4)].map(x=>`<option value="${x._id}">${x.name}</option>`).join('')}</select></label>`;
- if(t==='kv')return `<label>stats (key=value, comma separated)<input name="${n}" placeholder="agent=Jett, headshotPct=32"></label>`;
- return `<label>${n}<input name="${n}" type="${t}" ${t==='number'?'step="any"':''}></label>`;
-}
-function cell([n,t],r){const v=r[n];
- if(t.startsWith('ref:'))return label(t.slice(4),v);
- if(t==='kv')return kvs(v); if(t==='date')return v?v.slice(0,10):'-'; return v??'-'}
-function crud(col){
- const f=CFG[col];
- $('#main').innerHTML=`<div class="card"><h2 id="ft">Add ${col.slice(0,-1)}</h2><form id="f">${f.map(field).join('')}
- <button class="p" type="submit">Save</button></form></div>
- <div class="card tw">${D[col].length?`<table><tr>${f.map(x=>`<th>${x[0]}</th>`).join('')}<th></th></tr>
- ${D[col].map((r,i)=>`<tr>${f.map(x=>`<td>${cell(x,r)}</td>`).join('')}<td><button class="s" data-e="${i}">Edit</button>
- <button class="s d" data-x="${i}">Delete</button></td></tr>`).join('')}</table>`:'<p class="empty">Nothing here yet. Use the form above to add the first entry.</p>'}</div>`;
- $('#f').onsubmit=async e=>{e.preventDefault();const o=collect(col,e.target);
-  editing?await api(`${col}/${editing}`,'PUT',o):await api(col,'POST',o);show(col)};
- $('.tw').onclick=async e=>{const r=D[col][e.target.dataset.e??e.target.dataset.x];if(!r)return;
-  if(e.target.dataset.x!==undefined){if(confirm('Delete this record?')){await api(`${col}/${r._id}`,'DELETE');show(col)}return}
-  editing=r._id;$('#ft').textContent='Edit '+col.slice(0,-1);
-  f.forEach(([n,t])=>{const v=r[n];$('#f')[n].value=t==='kv'?kvs(v):t==='date'?(v||'').slice(0,10):v??''});scrollTo(0,0)};
-}
-function collect(col,form){const o={};
- for(const [n,t] of CFG[col]){let v=form[n].value;
-  if(t==='number')v=v===''?null:+v;
-  else if(t==='kv'){const s={};v.split(',').forEach(p=>{const [k,x]=p.split('=');if(k&&x!==undefined)s[k.trim()]=isNaN(x)?x.trim():+x});v=s}
-  else if(t.startsWith('ref:'))v=v||null;
-  o[n]=v}
- if(col==='matches')o.winnerId=o.scoreA>o.scoreB?o.teamA:o.scoreB>o.scoreA?o.teamB:null;
- return o}
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api = (url, method='GET', body) =>
+  fetch('/api/' + url, { method, headers:{'Content-Type':'application/json'}, body: body && JSON.stringify(body) }).then(r => r.json());
 
-const table=(rows,cols)=>rows.length?`<div class="tw"><table><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]??'-'}</td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="empty">No data yet. Run npm run seed or add matches.</p>';
-const chart=(id,type,labels,data,lab)=>charts.push(new Chart($('#'+id),{type,data:{labels,datasets:[{label:lab,data,backgroundColor:['#5b3df5','#ff5a4e','#12a89d','#f5b83d','#8a7cf8']}]},options:{plugins:{legend:{display:type==='doughnut'}}}}));
+let tab = 'teams', items = [], lookups = {}, editing = null;
 
-async function dash(){
- const [lt,lp,bg,wk,tiers]=await Promise.all([api('leaderboard/teams'),api('leaderboard/players'),api('analytics/by-game'),api('olap?level=week'),api('mining/tiers')]);
- $('#main').innerHTML=`<div class="grid"><div class="card"><div class="big">${D.matches.length}</div>matches played across ${D.tournaments.length} tournaments</div>
- <div class="card"><div class="big">${D.players.length}</div>players in ${D.teams.length} teams</div></div>
- <div class="grid"><div class="card"><h2>Top teams by wins</h2>${table(lt,['team','game','wins'])}</div>
- <div class="card"><h2>Top players by rating</h2>${table(lp,['gamerTag','game','team','rating'])}</div></div>
- <div class="grid"><div class="card"><h2>Matches per game</h2><canvas id="c1"></canvas></div>
- <div class="card"><h2>Matches per week</h2><canvas id="c2"></canvas></div>
- <div class="card"><h2>Player skill tiers</h2><canvas id="c3"></canvas></div></div>`;
- chart('c1','bar',bg.map(x=>x._id),bg.map(x=>x.matches),'Matches');
- chart('c2','line',wk.map(x=>x._id),wk.map(x=>x.matches),'Matches');
- chart('c3','doughnut',tiers.map(x=>x.tier),tiers.map(x=>x.players),'Players');
+/* ---- Tabs ---- */
+function drawNav() {
+  const names = { ...Object.fromEntries(Object.entries(R).map(([k,v]) => [k, v.title])), leaderboard:'Leaderboard' };
+  $('nav').innerHTML = Object.entries(names).map(([k,v]) =>
+    `<button class="${k===tab?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
 }
-async function lab(){
- $('#main').innerHTML=`<div class="card"><h2>OLAP roll-up (star schema)</h2>
- <form id="o"><label>Level<select name="level"><option>day</option><option selected>week</option><option>month</option></select></label>
- <label>Game (slice)<select name="game"><option value="">All games</option>${GAMES.map(g=>`<option>${g}</option>`).join('')}</select></label>
- <button class="p" type="submit">Run roll-up</button></form><div id="or"></div></div>
- <div class="card"><h2>Index proof with explain()</h2><button class="p" id="ex">Compare with and without index</button><pre id="exo">Press the button to run the query plan.</pre></div>
- <div class="card"><h2>Star schema</h2><pre>
-            dim_game(game)        dim_time(day, week, month)
-                  \\                  /
-  dim_team  ---  FACT_MATCH(tournamentId, teamA, teamB, scoreA, scoreB, winnerId, playedAt)
-                  /
-        dim_tournament(name, format, prizePool)</pre></div>`;
- $('#o').onsubmit=async e=>{e.preventDefault();const f=e.target;
-  const r=await api(`olap?level=${f.level.value}&game=${f.game.value}`);
-  $('#or').innerHTML=table(r.map(x=>({period:x._id,matches:x.matches})),['period','matches'])};
- $('#ex').onclick=async()=>{const r=await api('explain');
-  $('#exo').textContent=`WITH index    -> ${r.withIndex.plan}, docs examined: ${r.withIndex.docsExamined}, returned: ${r.withIndex.returned}\nWITHOUT index -> ${r.withoutIndex.plan}, docs examined: ${r.withoutIndex.docsExamined}, returned: ${r.withoutIndex.returned}`};
+function go(t) { tab = t; editing = null; drawNav(); t === 'leaderboard' ? loadBoard() : load(); }
+
+/* ---- CRUD screens ---- */
+async function load() {
+  const cfg = R[tab];
+  items = await api(tab);
+  for (const f of cfg.fields) if (f.t === 'ref' && !lookups[f.from]) lookups[f.from] = await api(f.from);
+  for (const k of ['teams','tournaments']) lookups[k] = await api(k);
+  draw();
 }
-nav();show('dashboard');
-</script></body></html>
+
+function inputFor(f, v) {
+  if (f.t === 'ref') {
+    const id = v?._id || v || '';
+    return `<select id="f_${f.k}"><option value="">Choose…</option>` +
+      lookups[f.from].map(o => `<option value="${o._id}" ${o._id===id?'selected':''}>${esc(o.name)}</option>`).join('') + '</select>';
+  }
+  if (f.t === 'choice')
+    return `<select id="f_${f.k}">` + f.opts.map(o => `<option ${o===v?'selected':''}>${o}</option>`).join('') + '</select>';
+  const type = f.t === 'number' ? 'number' : f.t === 'date' ? 'date' : 'text';
+  let val = v ?? '';
+  if (f.t === 'list') val = (v||[]).join(', ');
+  if (f.t === 'date') val = String(val).slice(0,10);
+  return `<input id="f_${f.k}" type="${type}" value="${esc(val)}">`;
+}
+
+function draw() {
+  const cfg = R[tab], cur = items.find(i => i._id === editing) || {};
+  $('main').innerHTML = `
+    <section class="panel">
+      <h2>${editing ? 'Edit ' : 'Add '}${cfg.one}</h2>
+      ${cfg.fields.map(f => `<label for="f_${f.k}">${f.l}</label>${inputFor(f, cur[f.k])}`).join('')}
+      <div class="err" id="err"></div>
+      <button class="btn" onclick="save()">${editing ? 'Save changes' : 'Add ' + cfg.one}</button>
+      ${editing ? '<button class="btn ghost" onclick="editing=null;draw()">Cancel</button>' : ''}
+    </section>
+    <section class="panel tbl">
+      <h2>${cfg.title} (${items.length})</h2>
+      ${items.length ? `<table><tr>${cfg.heads.map(h=>`<th>${h}</th>`).join('')}<th></th></tr>` +
+        items.map(x => `<tr>${cfg.row(x).map(c=>`<td>${esc(c)}</td>`).join('')}
+          <td><button class="link" onclick="edit('${x._id}')">Edit</button>
+              <button class="link del" onclick="del('${x._id}')">Delete</button></td></tr>`).join('') + '</table>'
+        : `<div class="empty">No ${cfg.title.toLowerCase()} yet. Add the first one using the form.</div>`}
+    </section>`;
+}
+
+function edit(id) { editing = id; draw(); window.scrollTo(0, 0); }
+
+async function save() {
+  const body = {};
+  for (const f of R[tab].fields) {
+    let v = $('f_' + f.k).value;
+    if (f.t === 'list') v = v.split(',').map(s => s.trim()).filter(Boolean);
+    if (f.t === 'number') v = Number(v || 0);
+    if (v === '') continue;
+    body[f.k] = v;
+  }
+  const res = editing ? await api(`${tab}/${editing}`, 'PUT', body) : await api(tab, 'POST', body);
+  if (res.error) return $('err').textContent = res.error;
+  editing = null;
+  load();
+}
+
+async function del(id) {
+  if (!confirm('Delete this ' + R[tab].one + '? Related matches will be removed too.')) return;
+  await api(`${tab}/${id}`, 'DELETE');
+  load();
+}
+
+/* ---- Leaderboard (uses the aggregation pipeline) ---- */
+async function loadBoard(tid) {
+  const ts = await api('tournaments');
+  tid = tid || ts[0]?._id;
+  const rows = tid ? await api('leaderboard/' + tid) : [];
+  $('main').innerHTML = `
+    <section class="panel full tbl">
+      <h2>Leaderboard</h2>
+      <label for="pick">Tournament</label>
+      <select id="pick" onchange="loadBoard(this.value)">
+        ${ts.map(t => `<option value="${t._id}" ${t._id===tid?'selected':''}>${esc(t.name)}</option>`).join('')}
+      </select>
+      ${rows.length ? `<table class="rank" style="margin-top:16px">
+        <tr><th>#</th><th>Team</th><th>Played</th><th>Wins</th><th>Score diff</th><th>Points</th></tr>
+        ${rows.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${r.played}</td><td>${r.wins}</td>
+          <td>${r.diff>0?'+':''}${r.diff}</td><td class="pts">${r.points}</td></tr>`).join('')}</table>`
+        : `<div class="empty">${ts.length ? 'No matches recorded for this tournament yet.' : 'Create a tournament first.'}</div>`}
+    </section>`;
+}
+
+drawNav(); load();
+</script>
+</body>
+</html>
