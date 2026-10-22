@@ -4,184 +4,405 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bracket Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#e8edf5; --panel:#ffffff; --ink:#14213d; --muted:#5b6784; --line:#cfd8e6; --blue:#2f5bff; --red:#e63e5c; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Barlow',system-ui,sans-serif; line-height:1.5; }
-  header { background:var(--ink); color:#fff; padding:20px 32px 0; }
-  h1 { font-family:'Barlow Condensed',sans-serif; font-size:44px; margin:0; letter-spacing:.5px; }
-  h1 span { color:#8fa6ff; }
-  nav { display:flex; gap:4px; margin-top:14px; flex-wrap:wrap; }
-  nav button { background:none; border:0; color:#aab6d6; font:600 20px 'Barlow Condensed',sans-serif; padding:10px 18px; cursor:pointer; border-bottom:4px solid transparent; }
-  nav button.on { color:#fff; border-color:var(--red); }
-  nav button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
-  main { max-width:1100px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:320px 1fr; gap:24px; }
-  @media (max-width:800px) { main { grid-template-columns:1fr; } }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:20px; }
-  h2 { font-family:'Barlow Condensed',sans-serif; font-size:26px; margin:0 0 14px; }
-  label { display:block; font-size:14px; color:var(--muted); margin:10px 0 4px; }
-  input, select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px; font:inherit; background:#fff; }
-  .btn { background:var(--blue); color:#fff; border:0; border-radius:4px; padding:10px 18px; font:600 16px 'Barlow',sans-serif; cursor:pointer; margin-top:16px; }
-  .btn.ghost { background:none; color:var(--muted); border:1px solid var(--line); margin-left:6px; }
-  .tbl { overflow-x:auto; }
-  table { width:100%; border-collapse:collapse; }
-  th { text-align:left; font-size:14px; color:var(--muted); font-weight:500; padding:8px; border-bottom:2px solid var(--line); }
-  td { padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
-  .link { background:none; border:0; color:var(--blue); cursor:pointer; font:inherit; padding:0 6px 0 0; }
-  .link.del { color:var(--red); }
-  .empty { color:var(--muted); padding:24px 8px; }
-  .err { color:var(--red); margin-top:10px; font-size:14px; min-height:20px; }
-  .rank td:first-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; width:40px; }
-  .pts { font-weight:700; }
-  .full { grid-column:1 / -1; }
+/* ---------- colours and fonts ---------- */
+:root{
+  --paper:#0b0f19; --card:#151b2b; --ink:#f1f5f9; --soft:#94a3b8; --line:#2a3249;
+  --night:#151b2b; --red:#e1ff00; --gold:#e1ff00;
+  --head:"Bahnschrift","Oswald","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --body:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 var(--body)}
+h1,h2,h3{font-family:var(--head);margin:0;letter-spacing:.01em}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* ---------- header ---------- */
+header{background:var(--night);color:var(--ink);border-bottom:5px solid var(--red)}
+.top{max-width:1050px;margin:auto;padding:14px 18px 0;display:flex;align-items:center;gap:14px}
+.top svg{flex:none}
+.top h1{font-size:34px;line-height:1}
+.top p{margin:2px 0 0;color:var(--soft);font-size:13px}
+nav{max-width:1050px;margin:10px auto 0;padding:0 18px;display:flex;gap:4px;overflow-x:auto}
+nav button{background:none;border:0;color:var(--soft);font:600 17px var(--head);padding:10px 18px;cursor:pointer;border-top:3px solid transparent}
+nav button:hover{color:var(--ink)}
+nav button.on{background:var(--paper);color:var(--ink);border-top-color:var(--red)}
+
+/* ---------- page ---------- */
+main{max-width:1050px;margin:auto;padding:22px 18px 60px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.bar h2{font-size:28px}
+.btn{background:var(--red);color:#000;border:0;border-radius:4px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn:hover{background:#b8cc00}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:rgba(255,255,255,0.1)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.pad{padding:14px 16px;flex:1}
+.acts{display:flex;gap:6px;padding:8px 16px 12px}
+.acts button{background:none;border:0;color:var(--soft);cursor:pointer;padding:2px 6px;text-decoration:underline}
+.acts button:hover{color:var(--red)}
+.chip{display:inline-block;background:var(--line);border-radius:3px;padding:1px 8px;margin:2px 3px 0 0;font-size:12.5px}
+
+/* teams */
+.team-top{display:flex;gap:12px;align-items:center}
+.team-top h3{font-size:22px;line-height:1.1}
+.meta{color:var(--soft);font-size:13.5px;margin:1px 0}
+.players{margin-top:10px}
+
+/* tournaments */
+.banner{height:96px;padding:10px 14px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;
+  background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.09) 0 14px,transparent 14px 28px)}
+.banner b{font:700 26px/1 var(--head);text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.status{align-self:flex-start;background:rgba(0,0,0,.4);padding:2px 9px;border-radius:3px;font-size:12px;font-weight:700}
+.status.Live{background:var(--red);color:#000}
+.status.Live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#000;margin-right:6px;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.status.Live::before{animation:none}}
+.prize{font:700 24px var(--head);margin-top:6px}
+
+/* matches */
+.list{display:flex;flex-direction:column;gap:14px}
+.match{background:var(--night);color:var(--ink);border-radius:6px;overflow:hidden}
+.strip{background:rgba(0,0,0,0.3);color:var(--soft);font-size:12.5px;padding:5px 14px;display:flex;justify-content:space-between;gap:8px}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:14px}
+.side{display:flex;align-items:center;gap:10px;font:500 20px var(--head);min-width:0}
+.side.b{justify-content:flex-end;text-align:right}
+.side span{overflow-wrap:anywhere}
+.side .w{font-weight:800;color:var(--gold)}
+.num{font:800 44px/1 var(--head);padding:2px 14px;background:rgba(0,0,0,0.4);border-radius:4px;white-space:nowrap}
+.match .acts{background:rgba(0,0,0,0.2);padding:6px 14px}
+.match .acts button{color:var(--soft)}
+.gone{font-style:italic;opacity:.6}
+
+/* leaderboard */
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}
+th,td{padding:10px 12px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:rgba(0,0,0,0.3);color:var(--soft);font:600 15px var(--head)}
+td.l,th.l{text-align:left}
+td.team{display:flex;align-items:center;gap:10px;font-weight:600}
+tbody tr:first-child{background:rgba(225,255,0,0.05)}
+tbody tr:first-child td{font-weight:700;border-bottom:2px solid var(--gold)}
+td.pts{font:800 20px var(--head)}
+.wrap{overflow-x:auto}
+select,input{border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%}
+.bar select{width:auto;min-width:220px}
+
+/* empty + dialog */
+.empty{background:var(--card);border:2px dashed var(--line);border-radius:6px;padding:36px 20px;text-align:center;color:var(--soft)}
+.empty b{display:block;font:700 22px var(--head);color:var(--ink);margin-bottom:4px}
+dialog{border:0;border-radius:6px;padding:0;width:min(440px,94vw);box-shadow:0 12px 40px rgba(10,20,50,.4)}
+dialog::backdrop{background:rgba(0,0,0,0.8)}
+dialog h2{background:var(--night);color:var(--ink);padding:12px 18px;font-size:24px;border-bottom:4px solid var(--red)}
+form{padding:14px 18px 18px}
+label{display:block;margin-bottom:11px;font-weight:600;font-size:13.5px}
+label input,label select{margin-top:3px;font-weight:400}
+label small{font-weight:400;color:var(--soft)}
+.err{background:rgba(239,68,68,0.1);color:#ef4444;border-left:4px solid #ef4444;padding:8px 10px;margin-bottom:10px;font-size:14px}
+.foot{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Bracket<span>Hub</span></h1>
+  <div class="top">
+    <!-- trophy drawn in SVG -->
+    <svg width="58" height="64" viewBox="0 0 58 64" aria-hidden="true">
+      <path d="M14 6h30v18a15 15 0 0 1-30 0z" fill="#e1ff00"/>
+      <path d="M14 11H4c0 12 5 18 12 19M44 11h10c0 12-5 18-12 19" fill="none" stroke="#e1ff00" stroke-width="4"/>
+      <path d="M22 9v14a7 7 0 0 0 4 6" stroke="#b8cc00" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <rect x="25" y="38" width="8" height="10" fill="#b8cc00"/>
+      <path d="M15 48h28l3 10H12z" fill="#2a3249"/>
+      <rect x="10" y="58" width="38" height="5" fill="#e1ff00"/>
+    </svg>
+    <div><h1>Bracket Hub</h1><p>Teams, tournaments and results in one place</p></div>
+  </div>
   <nav id="nav"></nav>
 </header>
+
 <main id="main"></main>
 
+<dialog id="dlg">
+  <h2 id="dlgTitle"></h2>
+  <form id="form" method="dialog"></form>
+</dialog>
+
 <script>
-/* ---- What each tab manages ---- */
+/* ---------- small helpers ---------- */
+const $ = id => document.getElementById(id);
+
+// escape text so user input can never become HTML
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// call the backend, return JSON, throw Error with the server message on failure
+async function api(url, method = "GET", body){
+  const opt = { method, headers: {} };
+  if (body){ opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  const res = await fetch(url, opt);
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error((data && data.error) || "Something went wrong (" + res.status + ")");
+  return data;
+}
+
+// number from the text -> 0..359 (same text always gives the same colour)
+function hue(text){
+  let h = 0;
+  for (const ch of String(text)) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+// shield-shaped team badge with initials
+function badge(name, size = 40){
+  const n = String(name || "?").trim() || "?";
+  const words = n.split(/\s+/);
+  const ini = (words.length > 1 ? words[0][0] + words[1][0] : n.slice(0, 2)).toUpperCase();
+  const h = hue(n);
+  return `<svg width="${size}" height="${size * 1.1}" viewBox="0 0 40 44" aria-hidden="true" style="flex:none">
+    <path d="M20 2 37 7v14c0 11-8 18-17 21C11 39 3 32 3 21V7z" fill="hsl(${h} 55% 40%)" stroke="hsl(${h} 60% 22%)" stroke-width="2.5"/>
+    <path d="M20 2 37 7v6H3V7z" fill="hsl(${h} 70% 62%)" opacity=".35"/>
+    <text x="20" y="28" text-anchor="middle" font-family="Arial Narrow,Arial,sans-serif" font-weight="700" font-size="${ini.length > 1 ? 15 : 18}" fill="#fff">${esc(ini)}</text>
+  </svg>`;
+}
+
+const rupees = n => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n || 0);
+const niceDate = d => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Date not set";
+
+/* ---------- app state ---------- */
+let tab = "teams";
+let data = { teams: [], tournaments: [], matches: [] };   // last loaded lists
+let editing = null;                                       // item being edited, or null for add
+
+/* ---------- one config object: what each tab shows ---------- */
 const R = {
   teams: {
-    title: 'Teams', one: 'team',
+    nav: "Teams", title: "Teams", one: "team", url: "/api/teams", layout: "grid",
+    emptyMsg: "No teams yet. Add your first team and it will show up here.",
     fields: [
-      { k:'name', l:'Team name' }, { k:'game', l:'Game' }, { k:'captain', l:'Captain' },
-      { k:'country', l:'Country' }, { k:'players', l:'Players (comma separated)', t:'list' },
+      { k: "name", label: "Team name", type: "text", req: true },
+      { k: "game", label: "Game", type: "text", req: true },
+      { k: "captain", label: "Captain", type: "text" },
+      { k: "country", label: "Country", type: "text" },
+      { k: "players", label: "Players", type: "list" }
     ],
-    heads: ['Team','Game','Captain','Country','Players'],
-    row: x => [x.name, x.game, x.captain, x.country, (x.players||[]).join(', ')],
+    card: t => `
+      <div class="pad">
+        <div class="team-top">${badge(t.name, 46)}
+          <div><h3>${esc(t.name)}</h3><div class="meta">${esc(t.game)}</div></div></div>
+        <div class="meta" style="margin-top:10px">Captain: ${esc(t.captain || "not set")}${t.country ? " (" + esc(t.country) + ")" : ""}</div>
+        <div class="players">${(t.players || []).map(p => `<span class="chip">${esc(p)}</span>`).join("") || '<span class="meta">No players listed</span>'}</div>
+      </div>`
   },
+
   tournaments: {
-    title: 'Tournaments', one: 'tournament',
+    nav: "Tournaments", title: "Tournaments", one: "tournament", url: "/api/tournaments", layout: "grid",
+    emptyMsg: "No tournaments yet. Create one, then schedule matches for it.",
     fields: [
-      { k:'name', l:'Tournament name' }, { k:'game', l:'Game' },
-      { k:'startDate', l:'Start date', t:'date' }, { k:'prizePool', l:'Prize pool (₹)', t:'number' },
-      { k:'status', l:'Status', t:'choice', opts:['Upcoming','Live','Finished'] },
+      { k: "name", label: "Tournament name", type: "text", req: true },
+      { k: "game", label: "Game", type: "text", req: true },
+      { k: "startDate", label: "Start date", type: "date" },
+      { k: "prizePool", label: "Prize pool (Rs.)", type: "number" },
+      { k: "status", label: "Status", type: "select", options: ["Upcoming", "Live", "Finished"] }
     ],
-    heads: ['Tournament','Game','Starts','Prize pool','Status'],
-    row: x => [x.name, x.game, (x.startDate||'').slice(0,10), '₹' + (x.prizePool||0).toLocaleString('en-IN'), x.status],
+    card: t => `
+      <div class="banner" style="background-color:hsl(${hue(t.game)} 50% 32%)">
+        <span class="status ${esc(t.status)}">${esc(t.status || "Upcoming")}</span>
+        <b>${esc(t.game)}</b>
+      </div>
+      <div class="pad">
+        <h3 style="font-size:22px">${esc(t.name)}</h3>
+        <div class="meta">Starts ${niceDate(t.startDate)}</div>
+        <div class="prize">${rupees(t.prizePool)}</div>
+        <div class="meta">prize pool</div>
+      </div>`
   },
+
   matches: {
-    title: 'Matches', one: 'match',
+    nav: "Matches", title: "Matches", one: "match", url: "/api/matches", layout: "list",
+    emptyMsg: "No matches yet. You need at least two teams and one tournament, then add a match.",
+    needs: "Add at least one tournament and two teams first, then you can schedule a match.",
     fields: [
-      { k:'tournament', l:'Tournament', t:'ref', from:'tournaments' },
-      { k:'teamA', l:'Team A', t:'ref', from:'teams' }, { k:'scoreA', l:'Team A score', t:'number' },
-      { k:'teamB', l:'Team B', t:'ref', from:'teams' }, { k:'scoreB', l:'Team B score', t:'number' },
-      { k:'playedOn', l:'Played on', t:'date' },
+      { k: "tournament", label: "Tournament", type: "ref", from: "tournaments", req: true },
+      { k: "teamA", label: "Team A", type: "ref", from: "teams", req: true },
+      { k: "teamB", label: "Team B", type: "ref", from: "teams", req: true },
+      { k: "scoreA", label: "Score A", type: "number" },
+      { k: "scoreB", label: "Score B", type: "number" },
+      { k: "playedOn", label: "Played on", type: "date" }
     ],
-    heads: ['Tournament','Match','Score','Date'],
-    row: x => [x.tournament?.name || '-', (x.teamA?.name||'-') + ' vs ' + (x.teamB?.name||'-'), x.scoreA + ' : ' + x.scoreB, (x.playedOn||'').slice(0,10)],
-  },
+    card: m => {
+      // references can be null if the team/tournament was deleted
+      const a = m.teamA ? m.teamA.name : null, b = m.teamB ? m.teamB.name : null;
+      const sa = Number(m.scoreA) || 0, sb = Number(m.scoreB) || 0;
+      const side = (name, win, cls) => `<div class="side ${cls}">${cls === "a" ? badge(name || "?", 40) : ""}
+        <span class="${win ? "w" : ""} ${name ? "" : "gone"}">${esc(name || "Deleted team")}</span>
+        ${cls === "b" ? badge(name || "?", 40) : ""}</div>`;
+      return `<div class="strip"><span>${esc(m.tournament ? m.tournament.name : "Deleted tournament")}</span><span>${niceDate(m.playedOn)}</span></div>
+        <div class="score">${side(a, sa > sb, "a")}<div class="num">${sa} : ${sb}</div>${side(b, sb > sa, "b")}</div>`;
+    }
+  }
 };
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const api = (url, method='GET', body) =>
-  fetch('/api/' + url, { method, headers:{'Content-Type':'application/json'}, body: body && JSON.stringify(body) }).then(r => r.json());
-
-let tab = 'teams', items = [], lookups = {}, editing = null;
-
-/* ---- Tabs ---- */
-function drawNav() {
-  const names = { ...Object.fromEntries(Object.entries(R).map(([k,v]) => [k, v.title])), leaderboard:'Leaderboard' };
-  $('nav').innerHTML = Object.entries(names).map(([k,v]) =>
-    `<button class="${k===tab?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
+/* ---------- navigation ---------- */
+function drawNav(){
+  const names = { teams: "Teams", tournaments: "Tournaments", matches: "Matches", board: "Leaderboard" };
+  $("nav").innerHTML = Object.keys(names).map(k =>
+    `<button data-tab="${k}" class="${k === tab ? "on" : ""}">${names[k]}</button>`).join("");
 }
-function go(t) { tab = t; editing = null; drawNav(); t === 'leaderboard' ? loadBoard() : load(); }
 
-/* ---- CRUD screens ---- */
-async function load() {
+function go(t){
+  tab = t;
+  drawNav();
+  if (t === "board") loadBoard(); else load();
+}
+
+/* ---------- list screens (teams / tournaments / matches) ---------- */
+async function load(){
   const cfg = R[tab];
-  items = await api(tab);
-  for (const f of cfg.fields) if (f.t === 'ref' && !lookups[f.from]) lookups[f.from] = await api(f.from);
-  for (const k of ['teams','tournaments']) lookups[k] = await api(k);
-  draw();
-}
-
-function inputFor(f, v) {
-  if (f.t === 'ref') {
-    const id = v?._id || v || '';
-    return `<select id="f_${f.k}"><option value="">Choose…</option>` +
-      lookups[f.from].map(o => `<option value="${o._id}" ${o._id===id?'selected':''}>${esc(o.name)}</option>`).join('') + '</select>';
+  $("main").innerHTML = '<p class="meta">Loading...</p>';
+  try {
+    // matches need the teams and tournaments for the dropdowns
+    [data.teams, data.tournaments, data.matches] = await Promise.all([
+      api("/api/teams"), api("/api/tournaments"), api("/api/matches")]);
+  } catch (e) {
+    $("main").innerHTML = `<div class="empty"><b>Could not load data</b>${esc(e.message)}. Check that the server is running and refresh.</div>`;
+    return;
   }
-  if (f.t === 'choice')
-    return `<select id="f_${f.k}">` + f.opts.map(o => `<option ${o===v?'selected':''}>${o}</option>`).join('') + '</select>';
-  const type = f.t === 'number' ? 'number' : f.t === 'date' ? 'date' : 'text';
-  let val = v ?? '';
-  if (f.t === 'list') val = (v||[]).join(', ');
-  if (f.t === 'date') val = String(val).slice(0,10);
-  return `<input id="f_${f.k}" type="${type}" value="${esc(val)}">`;
+  const items = data[tab];
+  let html = `<div class="bar"><h2>${cfg.title}</h2><button class="btn" data-act="add">Add ${cfg.one}</button></div>`;
+  if (!items.length){
+    html += `<div class="empty"><b>Nothing here yet</b>${esc(cfg.emptyMsg)}</div>`;
+  } else {
+    html += `<div class="${cfg.layout}">` + items.map(it => {
+      const buttons = `<div class="acts"><button data-act="edit" data-id="${esc(it._id)}">Edit</button><button data-act="del" data-id="${esc(it._id)}">Delete</button></div>`;
+      return cfg.layout === "grid"
+        ? `<div class="card">${cfg.card(it)}${buttons}</div>`
+        : `<div class="match">${cfg.card(it)}${buttons}</div>`;
+    }).join("") + "</div>";
+  }
+  $("main").innerHTML = html;
 }
 
-function draw() {
-  const cfg = R[tab], cur = items.find(i => i._id === editing) || {};
-  $('main').innerHTML = `
-    <section class="panel">
-      <h2>${editing ? 'Edit ' : 'Add '}${cfg.one}</h2>
-      ${cfg.fields.map(f => `<label for="f_${f.k}">${f.l}</label>${inputFor(f, cur[f.k])}`).join('')}
-      <div class="err" id="err"></div>
-      <button class="btn" onclick="save()">${editing ? 'Save changes' : 'Add ' + cfg.one}</button>
-      ${editing ? '<button class="btn ghost" onclick="editing=null;draw()">Cancel</button>' : ''}
-    </section>
-    <section class="panel tbl">
-      <h2>${cfg.title} (${items.length})</h2>
-      ${items.length ? `<table><tr>${cfg.heads.map(h=>`<th>${h}</th>`).join('')}<th></th></tr>` +
-        items.map(x => `<tr>${cfg.row(x).map(c=>`<td>${esc(c)}</td>`).join('')}
-          <td><button class="link" onclick="edit('${x._id}')">Edit</button>
-              <button class="link del" onclick="del('${x._id}')">Delete</button></td></tr>`).join('') + '</table>'
-        : `<div class="empty">No ${cfg.title.toLowerCase()} yet. Add the first one using the form.</div>`}
-    </section>`;
+/* ---------- add / edit popup, built from the fields list ---------- */
+function openForm(item){
+  const cfg = R[tab];
+  editing = item || null;
+
+  // matches can't be created without teams and a tournament
+  if (tab === "matches" && !item && (data.teams.length < 2 || !data.tournaments.length)){
+    alert(cfg.needs);
+    return;
+  }
+
+  $("dlgTitle").textContent = (item ? "Edit " : "Add ") + cfg.one;
+  $("form").innerHTML = '<div id="err"></div>' + cfg.fields.map(f => {
+    let val = item ? item[f.k] : "";
+    let input;
+    if (f.type === "select"){
+      input = `<select name="${f.k}">${f.options.map(o => `<option ${val === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    } else if (f.type === "ref"){
+      const id = val && val._id ? val._id : "";   // populated object -> its id
+      input = `<select name="${f.k}" ${f.req ? "required" : ""}><option value="">Choose...</option>` +
+        data[f.from].map(o => `<option value="${esc(o._id)}" ${o._id === id ? "selected" : ""}>${esc(o.name)}</option>`).join("") + "</select>";
+    } else {
+      if (f.type === "list") val = (val || []).join(", ");
+      if (f.type === "date") val = val ? String(val).slice(0, 10) : "";
+      const t = f.type === "list" ? "text" : f.type;
+      input = `<input name="${f.k}" type="${t}" value="${esc(val)}" ${f.type === "number" ? 'min="0" step="any"' : ""} ${f.req ? "required" : ""}>`;
+    }
+    return `<label>${esc(f.label)}${f.type === "list" ? " <small>(separate with commas)</small>" : ""}${input}</label>`;
+  }).join("") + `<div class="foot"><button type="button" class="btn ghost" data-act="close">Cancel</button><button type="submit" class="btn">Save ${cfg.one}</button></div>`;
+  $("dlg").showModal();
 }
 
-function edit(id) { editing = id; draw(); window.scrollTo(0, 0); }
-
-async function save() {
+async function save(e){
+  e.preventDefault();
+  const cfg = R[tab];
   const body = {};
-  for (const f of R[tab].fields) {
-    let v = $('f_' + f.k).value;
-    if (f.t === 'list') v = v.split(',').map(s => s.trim()).filter(Boolean);
-    if (f.t === 'number') v = Number(v || 0);
-    if (v === '') continue;
-    body[f.k] = v;
+  const fd = new FormData($("form"));
+  cfg.fields.forEach(f => {
+    const v = (fd.get(f.k) || "").trim();
+    if (f.type === "list") body[f.k] = v.split(",").map(s => s.trim()).filter(Boolean);
+    else if (f.type === "number") body[f.k] = v === "" ? 0 : Number(v);
+    else body[f.k] = v;
+  });
+  if (tab === "matches" && body.teamA === body.teamB){
+    $("err").innerHTML = '<div class="err">Team A and Team B must be different teams.</div>';
+    return;
   }
-  const res = editing ? await api(`${tab}/${editing}`, 'PUT', body) : await api(tab, 'POST', body);
-  if (res.error) return $('err').textContent = res.error;
-  editing = null;
-  load();
+  try {
+    if (editing) await api(cfg.url + "/" + editing._id, "PUT", body);
+    else await api(cfg.url, "POST", body);
+    $("dlg").close();
+    load();
+  } catch (err) {
+    $("err").innerHTML = `<div class="err">${esc(err.message)}</div>`;   // server message shown in the form
+  }
 }
 
-async function del(id) {
-  if (!confirm('Delete this ' + R[tab].one + '? Related matches will be removed too.')) return;
-  await api(`${tab}/${id}`, 'DELETE');
-  load();
+async function del(id){
+  const cfg = R[tab];
+  let extra = "";
+  if (tab === "teams" || tab === "tournaments") extra = "\n\nIts matches will be deleted too.";
+  if (!confirm("Delete this " + cfg.one + "? This cannot be undone." + extra)) return;
+  try {
+    await api(cfg.url + "/" + id, "DELETE");
+    load();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
-/* ---- Leaderboard (uses the aggregation pipeline) ---- */
-async function loadBoard(tid) {
-  const ts = await api('tournaments');
-  tid = tid || ts[0]?._id;
-  const rows = tid ? await api('leaderboard/' + tid) : [];
-  $('main').innerHTML = `
-    <section class="panel full tbl">
-      <h2>Leaderboard</h2>
-      <label for="pick">Tournament</label>
-      <select id="pick" onchange="loadBoard(this.value)">
-        ${ts.map(t => `<option value="${t._id}" ${t._id===tid?'selected':''}>${esc(t.name)}</option>`).join('')}
-      </select>
-      ${rows.length ? `<table class="rank" style="margin-top:16px">
-        <tr><th>#</th><th>Team</th><th>Played</th><th>Wins</th><th>Score diff</th><th>Points</th></tr>
-        ${rows.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${r.played}</td><td>${r.wins}</td>
-          <td>${r.diff>0?'+':''}${r.diff}</td><td class="pts">${r.points}</td></tr>`).join('')}</table>`
-        : `<div class="empty">${ts.length ? 'No matches recorded for this tournament yet.' : 'Create a tournament first.'}</div>`}
-    </section>`;
+/* ---------- leaderboard ---------- */
+async function loadBoard(id){
+  $("main").innerHTML = '<p class="meta">Loading...</p>';
+  try {
+    data.tournaments = await api("/api/tournaments");
+  } catch (e) {
+    $("main").innerHTML = `<div class="empty"><b>Could not load data</b>${esc(e.message)}</div>`;
+    return;
+  }
+  if (!data.tournaments.length){
+    $("main").innerHTML = '<div class="bar"><h2>Leaderboard</h2></div><div class="empty"><b>No tournaments yet</b>Create a tournament and add matches to it. Standings appear here once results are in.</div>';
+    return;
+  }
+  id = id || data.tournaments[0]._id;
+  const opts = data.tournaments.map(t => `<option value="${esc(t._id)}" ${t._id === id ? "selected" : ""}>${esc(t.name)}</option>`).join("");
+  let table;
+  try {
+    const rows = await api("/api/leaderboard/" + id);
+    table = !rows.length
+      ? '<div class="empty"><b>No results for this tournament</b>Add a match on the Matches tab and the standings will fill in.</div>'
+      : `<div class="wrap"><table><thead><tr><th>Rank</th><th class="l">Team</th><th>Played</th><th>Wins</th><th>Diff</th><th>Points</th></tr></thead><tbody>` +
+        rows.map((r, i) => `<tr><td>${i + 1}</td><td class="l"><div class="team">${badge(r.name, 30)}<span>${esc(r.name)}</span></div></td>
+          <td>${r.played}</td><td>${r.wins}</td><td>${r.diff > 0 ? "+" : ""}${r.diff}</td><td class="pts">${r.points}</td></tr>`).join("") +
+        "</tbody></table></div>";
+    // keep badge and name on one line inside the table cell
+    table = table.replace(/<div class="team">/g, '<div class="team" style="display:flex;align-items:center;gap:10px;font-weight:600">');
+  } catch (e) {
+    table = `<div class="empty"><b>Could not load standings</b>${esc(e.message)}</div>`;
+  }
+  $("main").innerHTML = `<div class="bar"><h2>Leaderboard</h2><select id="pick" aria-label="Tournament">${opts}</select></div>` + table;
 }
 
-drawNav(); load();
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-tab],[data-act]");
+  if (!b) return;
+  if (b.dataset.tab) return go(b.dataset.tab);
+  const act = b.dataset.act;
+  if (act === "add") openForm();
+  if (act === "close") $("dlg").close();
+  if (act === "edit") openForm(data[tab].find(x => x._id === b.dataset.id));
+  if (act === "del") del(b.dataset.id);
+});
+document.addEventListener("change", e => { if (e.target.id === "pick") loadBoard(e.target.value); });
+$("form").addEventListener("submit", save);
+
+go("teams");
 </script>
 </body>
 </html>
