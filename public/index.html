@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bracket Hub</title>
+<style>
+:root{--bg:#0a0a12;--panel:#11111d;--card:#161626;--line:#25253b;--ink:#f3f3fa;--soft:#8b8ba7;--acc:#7c5cff;--acc2:#9d85ff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Inter","Segoe UI",system-ui,sans-serif}
+h1,h2,h3,h4,p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+header{position:sticky;top:0;z-index:5;background:rgba(10,10,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{max-width:1100px;margin:auto;padding:0 18px;display:flex;align-items:center;gap:6px;height:54px;overflow-x:auto}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;margin-right:14px;white-space:nowrap;color:var(--ink);text-decoration:none}
+.logo svg{color:var(--acc2)}
+.nav a.l{color:var(--soft);text-decoration:none;padding:7px 12px;border-radius:7px;font-size:13px;white-space:nowrap}
+.nav a.l:hover{color:var(--ink)}
+.nav a.l.on{color:var(--ink);background:var(--card);box-shadow:inset 0 -2px 0 var(--acc)}
+main{max-width:1100px;margin:auto;padding:26px 18px 70px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.bar h2{font-size:22px}
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.filters input{flex:1;min-width:180px}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%}
+select option{background:var(--panel)}
+.filters select{width:auto;min-width:150px}
+.btn{background:var(--acc);border:0;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;color:#fff;width:auto}
+.btn:hover{background:#6a49f0}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--soft)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--soft)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.pad{padding:14px 16px;flex:1}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.panel h3{font-size:13px;color:var(--soft);font-weight:600;margin-bottom:12px}
+.tbanner{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;font-size:12px;font-weight:700;background:linear-gradient(90deg,var(--g,#4c2fb8),#1b1b30)}
+.pill{font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;background:rgba(255,255,255,.08)}
+.pill.Live{color:var(--ok);background:rgba(34,197,94,.14)}
+.pill.Upcoming{color:var(--warn);background:rgba(245,158,11,.14)}
+.pill.Finished{color:var(--soft)}
+.tname{font-size:17px;font-weight:700;margin-bottom:4px}
+.meta{color:var(--soft);font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
+.prize{font-size:20px;font-weight:700;margin-top:12px}
+.prize small{display:block;color:var(--soft);font-size:11px;font-weight:400}
+.acts{display:flex;gap:4px;padding:8px 12px;border-top:1px solid var(--line)}
+.acts button{background:none;border:0;color:var(--soft);cursor:pointer;padding:5px 8px;border-radius:6px;font-size:12px}
+.acts button:hover{background:var(--panel);color:var(--ink)}
+.acts button.del:hover{color:var(--bad)}
+.badge{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none;background:var(--c);color:#fff}
+.badge.sm{width:26px;height:26px;font-size:10px;border-radius:7px}
+.trow{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px}
+.rec{display:flex;gap:12px;font-size:12px;color:var(--soft);margin-top:8px}
+.rec b{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+.stat .ic{width:36px;height:36px;border-radius:9px;background:rgba(124,92,255,.15);color:var(--acc2);display:grid;place-items:center;font-size:16px}
+.stat b{font-size:22px;display:block;line-height:1.1}
+.stat span{color:var(--soft);font-size:12px}
+.hero{border:1px solid var(--line);border-radius:14px;padding:34px 30px;margin-bottom:18px;background:radial-gradient(circle at 85% 0,rgba(124,92,255,.35),transparent 55%),var(--panel)}
+.hero h1{font-size:38px;margin:6px 0 8px}
+.hero p{color:var(--soft);max-width:420px}
+.hero .btns{display:flex;gap:10px;margin-top:20px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}.hero h1{font-size:30px}}
+.mrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--card);border-radius:9px;padding:9px 12px;margin-bottom:8px}
+.mrow .t{display:flex;align-items:center;gap:8px;min-width:0}
+.mrow .t:last-child{justify-content:flex-end}
+.mrow .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{font-weight:700;font-size:15px;background:var(--bg);border-radius:7px;padding:4px 12px;letter-spacing:.05em}
+.win{color:var(--ok);font-weight:600}
+.mhead{display:flex;justify-content:space-between;color:var(--soft);font-size:11px;margin:12px 0 5px}
+.bars .b{display:grid;grid-template-columns:110px 1fr 24px;gap:10px;align-items:center;margin-bottom:9px;font-size:12px}
+.bars .track{height:9px;border-radius:9px;background:var(--card)}
+.bars .fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:var(--soft);font-weight:600;text-align:center;padding:8px}
+td{padding:10px 8px;text-align:center;border-top:1px solid var(--line)}
+th:nth-child(2),td:nth-child(2){text-align:left}
+.rank{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--card);font-weight:700;font-size:12px}
+.rank.r1{background:var(--acc)}
+.note{color:var(--soft);font-size:12px;margin-top:10px}
+.empty{color:var(--soft);padding:30px;text-align:center;border:1px dashed var(--line);border-radius:12px;grid-column:1/-1}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:22px;width:min(440px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog h3{margin-bottom:14px;font-size:18px}
+dialog label{display:block;font-size:12px;color:var(--soft);margin:10px 0 4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--bad);font-size:12px;min-height:16px;margin-top:10px}
+.dact{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+</style>
+</head>
+<body>
+<header><div class="nav" id="nav"></div></header>
+<main id="app"></main>
+<dialog id="dlg"></dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+const fdate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const idate = (d) => d ? new Date(d).toISOString().slice(0, 10) : '';
+const hue = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+const col = (s) => `hsl(${hue(s)} 55% 42%)`;
+const badge = (n, sm) => `<div class="badge${sm ? ' sm' : ''}" style="--c:${col(n)}">${esc(String(n).slice(0, 2).toUpperCase())}</div>`;
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch('/api/' + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
+
+let D = { teams: [], tours: [], matches: [], rec: {} };
+const f = { tSearch: '', tStatus: '', tGame: '', mTeam: '', mTour: '', teamSearch: '', teamGame: '', lb: '' };
+const PAGES = ['home', 'dashboard', 'tournaments', 'teams', 'matches', 'leaderboard'];
+const ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
+
+async function load() {
+  const [teams, tours, matches, rec] = await Promise.all([api('teams'), api('tournaments'), api('matches'), api('records')]);
+  D = { teams, tours, matches, rec };
+  render();
+}
+const page = () => (location.hash.slice(1) || 'home');
+window.addEventListener('hashchange', render);
+
+function render() {
+  const p = PAGES.includes(page()) ? page() : 'home';
+  $('#nav').innerHTML = `<a class="logo" href="#home">${ICON} Bracket Hub</a>` +
+    PAGES.map((x) => `<a class="l${x === p ? ' on' : ''}" href="#${x}">${x[0].toUpperCase() + x.slice(1)}</a>`).join('');
+  ({ home, dashboard, tournaments, teams, matches, leaderboard })[p]();
+}
+
+const matchCount = (tid) => D.matches.filter((m) => m.tournament?._id === tid).length;
+const games = (arr) => [...new Set(arr.map((x) => x.game))].sort();
+const opts = (arr, sel, all) => (all ? `<option value="">${all}</option>` : '') + arr.map(([v, l]) => `<option value="${esc(v)}"${v === sel ? ' selected' : ''}>${esc(l)}</option>`).join('');
+
+/* ---------- Cards ---------- */
+function tourCard(t, actions = true) {
+  return `<div class="card"><div class="tbanner" style="--g:hsl(${hue(t.game)} 60% 30%)"><span>${esc(t.game)}</span><span class="pill ${t.status}">${t.status}</span></div>
+  <div class="pad"><div class="tname">${esc(t.name)}</div>
+  <div class="meta"><span>${fdate(t.startDate)}</span><span>${matchCount(t._id)} match${matchCount(t._id) === 1 ? '' : 'es'}</span></div>
+  <div class="prize">${inr(t.prizePool)}<small>prize pool</small></div></div>
+  ${actions ? `<div class="acts"><button onclick="location.hash='leaderboard';f.lb='${t._id}';render()">Standings</button><button onclick="editTour('${t._id}')">Edit</button><button class="del" onclick="del('tournaments','${t._id}','${esc(t.name)}')">Delete</button></div>` : ''}</div>`;
+}
+function matchRow(m, actions) {
+  const a = m.teamA?.name || 'Deleted team', b = m.teamB?.name || 'Deleted team';
+  return `<div class="mhead"><span>${esc(m.tournament?.name || '')}</span><span>${fdate(m.playedOn)}</span></div>
+  <div class="mrow"><div class="t">${badge(a, 1)}<span class="${m.scoreA > m.scoreB ? 'win' : ''}">${esc(a)}</span></div>
+  <div class="score">${m.scoreA} : ${m.scoreB}</div>
+  <div class="t"><span class="${m.scoreB > m.scoreA ? 'win' : ''}">${esc(b)}</span>${badge(b, 1)}</div></div>
+  ${actions ? `<div class="acts" style="border:0;padding:0 0 4px"><button onclick="editMatch('${m._id}')">Edit</button><button class="del" onclick="del('matches','${m._id}','this match')">Delete</button></div>` : ''}`;
+}
+function lbTable(rows) {
+  if (!rows.length) return '<div class="empty">No matches recorded for this tournament yet.</div>';
+  return `<table><tr><th>RANK</th><th>TEAM</th><th>P</th><th>W</th><th>D</th><th>L</th><th>DIFF</th><th>PTS</th></tr>` +
+    rows.map((r, i) => `<tr><td><span class="rank${i === 0 ? ' r1' : ''}">${i + 1}</span></td><td><div class="trow" style="margin:0">${badge(r.name, 1)}${esc(r.name)}</div></td>
+    <td>${r.played}</td><td>${r.wins}</td><td>${r.draws}</td><td>${r.losses}</td><td>${r.diff > 0 ? '+' : ''}${r.diff}</td><td><b>${r.points}</b></td></tr>`).join('') + '</table>';
+}
+
+/* ---------- Pages ---------- */
+function home() {
+  const prize = D.tours.reduce((s, t) => s + (t.prizePool || 0), 0);
+  $('#app').innerHTML = `<div class="hero"><p>Esports tournament management</p><h1>Bracket Hub</h1><p>Register teams, run tournaments, record match results and follow the leaderboard, all in one place.</p>
+  <div class="btns"><a class="btn" href="#tournaments" style="text-decoration:none">View tournaments</a><a class="btn ghost" href="#dashboard" style="text-decoration:none">Open dashboard</a></div></div>
+  <div class="stats">${[['Teams', D.teams.length, '👥'], ['Tournaments', D.tours.length, '🏆'], ['Matches', D.matches.length, '⚔'], ['Total prize pool', inr(prize), '₹']]
+    .map(([l, v, i]) => `<div class="stat"><div class="ic">${i}</div><div><b>${v}</b><span>${l}</span></div></div>`).join('')}</div>
+  <div class="bar"><h2 style="font-size:16px">Featured tournaments</h2><a href="#tournaments" style="color:var(--acc2);font-size:13px">See all</a></div>
+  <div class="grid">${D.tours.slice(0, 3).map((t) => tourCard(t, false)).join('') || '<div class="empty">No tournaments yet.</div>'}</div>`;
+}
+
+async function dashboard() {
+  const live = D.tours.filter((t) => t.status === 'Live'), up = D.tours.filter((t) => t.status === 'Upcoming');
+  $('#app').innerHTML = `<div class="bar"><h2>Dashboard</h2></div><div id="st"></div><div id="lbx"></div>`;
+  let s; try { s = await api('stats'); } catch { s = { perTournament: [], topTeams: [] }; }
+  const bars = (rows, k) => { const mx = Math.max(1, ...rows.map((r) => r[k])); return rows.length ? rows.map((r) => `<div class="b"><span>${esc(r.name)}</span><div class="track"><div class="fill" style="width:${r[k] / mx * 100}%"></div></div><b>${r[k]}</b></div>`).join('') : '<p class="note">Nothing to show yet.</p>'; };
+  const lt = live[0], lb = lt ? await api('leaderboard/' + lt._id) : [];
+  $('#st').outerHTML = `<div class="stats">${[['Teams', D.teams.length, '👥'], ['Tournaments', D.tours.length, '🏆'], ['Matches played', D.matches.length, '⚔'], ['Live tournaments', live.length, '●']]
+    .map(([l, v, i]) => `<div class="stat"><div class="ic">${i}</div><div><b>${v}</b><span>${l}</span></div></div>`).join('')}</div>
+  <div class="cols"><div class="panel"><h3>Recent matches</h3>${D.matches.slice(0, 4).map((m) => matchRow(m)).join('') || '<p class="note">No matches yet.</p>'}</div>
+  <div class="panel"><h3>Upcoming tournaments</h3>${up.map((t) => `<div class="mrow" style="grid-template-columns:1fr auto"><span>${esc(t.name)}</span><span class="note" style="margin:0">${esc(t.game)} · ${fdate(t.startDate)}</span></div>`).join('') || '<p class="note">None scheduled.</p>'}</div></div>
+  <div class="cols"><div class="panel bars"><h3>Matches per tournament</h3>${bars(s.perTournament, 'matches')}</div><div class="panel bars"><h3>Teams with most wins</h3>${bars(s.topTeams, 'wins')}</div></div>
+  <div class="panel"><div class="bar" style="margin-bottom:8px"><h3 style="margin:0">Leaderboard${lt ? ': ' + esc(lt.name) : ''}</h3><a href="#leaderboard" style="color:var(--acc2);font-size:13px">Full leaderboard</a></div>${lt ? lbTable(lb) : '<p class="note">No live tournament right now.</p>'}</div>`;
+  $('#lbx').remove();
+}
+
+function tournaments() {
+  const q = f.tSearch.toLowerCase();
+  const list = D.tours.filter((t) => t.name.toLowerCase().includes(q) && (!f.tStatus || t.status === f.tStatus) && (!f.tGame || t.game === f.tGame));
+  $('#app').innerHTML = `<div class="bar"><h2>Tournaments</h2><button class="btn" onclick="editTour()">+ Add tournament</button></div>
+  <div class="filters"><input id="s" placeholder="Search tournaments" value="${esc(f.tSearch)}">
+  <select id="st">${opts(['Upcoming', 'Live', 'Finished'].map((x) => [x, x]), f.tStatus, 'All statuses')}</select>
+  <select id="sg">${opts(games(D.tours).map((x) => [x, x]), f.tGame, 'All games')}</select></div>
+  <div class="grid">${list.map((t) => tourCard(t)).join('') || '<div class="empty">No tournaments match. Add one or clear the filters.</div>'}</div>`;
+  bindFilter('s', 'tSearch', tournaments, true); bindFilter('st', 'tStatus', tournaments); bindFilter('sg', 'tGame', tournaments);
+}
+
+function teams() {
+  const q = f.teamSearch.toLowerCase();
+  const list = D.teams.filter((t) => (t.name + ' ' + (t.players || []).join(' ')).toLowerCase().includes(q) && (!f.teamGame || t.game === f.teamGame));
+  $('#app').innerHTML = `<div class="bar"><h2>Teams</h2><button class="btn" onclick="editTeam()">+ Add team</button></div>
+  <div class="filters"><input id="s" placeholder="Search teams or players" value="${esc(f.teamSearch)}"><select id="sg">${opts(games(D.teams).map((x) => [x, x]), f.teamGame, 'All games')}</select></div>
+  <div class="grid">${list.map((t) => { const r = D.rec[t._id] || { wins: 0, draws: 0, losses: 0, played: 0 };
+    return `<div class="card"><div class="pad"><div class="trow">${badge(t.name)}<div><div class="tname" style="margin:0;font-size:15px">${esc(t.name)}</div><div class="meta">${esc(t.game)}</div></div></div>
+    <div class="meta">Captain ${esc(t.captain || '—')}${t.country ? ' (' + esc(t.country) + ')' : ''}</div>
+    <div class="chips">${(t.players || []).map((p) => `<span class="chip">${esc(p)}</span>`).join('')}</div>
+    <div class="rec"><span><b>${r.wins}</b> W</span><span><b>${r.draws}</b> D</span><span><b>${r.losses}</b> L</span><span>${r.played} played</span></div></div>
+    <div class="acts"><button onclick="editTeam('${t._id}')">Edit</button><button class="del" onclick="del('teams','${t._id}','${esc(t.name)}')">Delete</button></div></div>`; }).join('') || '<div class="empty">No teams match. Add one or clear the filters.</div>'}</div>`;
+  bindFilter('s', 'teamSearch', teams, true); bindFilter('sg', 'teamGame', teams);
+}
+
+function matches() {
+  const q = f.mTeam.toLowerCase();
+  const list = D.matches.filter((m) => (!f.mTour || m.tournament?._id === f.mTour) && ((m.teamA?.name || '') + ' ' + (m.teamB?.name || '')).toLowerCase().includes(q));
+  $('#app').innerHTML = `<div class="bar"><h2>Matches</h2><button class="btn" onclick="editMatch()">+ Add match</button></div>
+  <div class="filters"><input id="s" placeholder="Search by team" value="${esc(f.mTeam)}"><select id="st">${opts(D.tours.map((t) => [t._id, t.name]), f.mTour, 'All tournaments')}</select></div>
+  <div class="panel">${list.map((m) => matchRow(m, true)).join('') || '<div class="empty" style="border:0">No matches found.</div>'}</div>`;
+  bindFilter('s', 'mTeam', matches, true); bindFilter('st', 'mTour', matches);
+}
+
+async function leaderboard() {
+  if (!f.lb || !D.tours.some((t) => t._id === f.lb)) f.lb = (D.tours.find((t) => t.status === 'Live') || D.tours[0] || {})._id || '';
+  $('#app').innerHTML = `<div class="bar"><h2>Leaderboard</h2><select id="sl" style="width:auto;min-width:200px">${opts(D.tours.map((t) => [t._id, t.name]), f.lb)}</select></div>
+  <div class="panel" id="lbt"></div><p class="note">Win = 3 points, draw = 1, loss = 0. Ties are broken by round difference.</p>`;
+  $('#sl').onchange = (e) => { f.lb = e.target.value; leaderboard(); };
+  $('#lbt').innerHTML = f.lb ? lbTable(await api('leaderboard/' + f.lb)) : '<div class="empty">Add a tournament to see standings.</div>';
+}
+
+function bindFilter(id, key, fn, typing) {
+  const el = $('#' + id);
+  el.oninput = el.onchange = (e) => { f[key] = e.target.value; const pos = e.target.selectionStart; fn(); if (typing) { const n = $('#' + id); n.focus(); n.setSelectionRange(pos, pos); } };
+}
+
+/* ---------- Forms ---------- */
+function form(title, fields, vals, onSave) {
+  const d = $('#dlg');
+  d.innerHTML = `<h3>${title}</h3><form id="fm" method="dialog">${fields.map((x) => `<label for="f_${x.k}">${x.label}</label>` +
+    (x.options ? `<select id="f_${x.k}" required>${opts(x.options, vals[x.k] ?? '', 'Select…')}</select>` : `<input id="f_${x.k}" type="${x.type || 'text'}" value="${esc(vals[x.k] ?? '')}" ${x.req ? 'required' : ''} ${x.min != null ? `min="${x.min}"` : ''}>`)).join('')}
+  <div class="err" id="err"></div><div class="dact"><button type="button" class="btn ghost" onclick="$('#dlg').close()">Cancel</button><button class="btn">Save</button></div></form>`;
+  $('#fm').onsubmit = async (e) => {
+    e.preventDefault();
+    const o = {}; fields.forEach((x) => (o[x.k] = $('#f_' + x.k).value));
+    try { await onSave(o); d.close(); await load(); } catch (er) { $('#err').textContent = er.message; }
+  };
+  d.showModal();
+}
+const GAMES = ['Valorant', 'CS2', 'BGMI', 'COD', 'GTA VI', 'Free Fire'];
+function editTour(id) {
+  const t = D.tours.find((x) => x._id === id) || {};
+  form(id ? 'Edit tournament' : 'Add tournament', [
+    { k: 'name', label: 'Name', req: 1 }, { k: 'game', label: 'Game', req: 1 }, { k: 'startDate', label: 'Start date', type: 'date' },
+    { k: 'prizePool', label: 'Prize pool (₹)', type: 'number', min: 0 }, { k: 'status', label: 'Status', options: ['Upcoming', 'Live', 'Finished'].map((x) => [x, x]) },
+  ], { ...t, startDate: idate(t.startDate), status: t.status || 'Upcoming' },
+  (o) => api('tournaments' + (id ? '/' + id : ''), id ? 'PUT' : 'POST', { ...o, prizePool: +o.prizePool || 0, startDate: o.startDate || null }));
+}
+function editTeam(id) {
+  const t = D.teams.find((x) => x._id === id) || {};
+  form(id ? 'Edit team' : 'Add team', [
+    { k: 'name', label: 'Team name', req: 1 }, { k: 'game', label: 'Game', req: 1 }, { k: 'captain', label: 'Captain' }, { k: 'country', label: 'Country' },
+    { k: 'players', label: 'Players (comma separated)' },
+  ], { ...t, players: (t.players || []).join(', ') },
+  (o) => api('teams' + (id ? '/' + id : ''), id ? 'PUT' : 'POST', { ...o, players: o.players.split(',').map((p) => p.trim()).filter(Boolean) }));
+}
+function editMatch(id) {
+  const m = D.matches.find((x) => x._id === id) || {};
+  const tm = D.teams.map((t) => [t._id, `${t.name} (${t.game})`]);
+  form(id ? 'Edit match' : 'Add match', [
+    { k: 'tournament', label: 'Tournament', options: D.tours.map((t) => [t._id, t.name]) },
+    { k: 'teamA', label: 'Team A', options: tm }, { k: 'scoreA', label: 'Score A', type: 'number', min: 0 },
+    { k: 'teamB', label: 'Team B', options: tm }, { k: 'scoreB', label: 'Score B', type: 'number', min: 0 },
+    { k: 'playedOn', label: 'Date played', type: 'date' },
+  ], { tournament: m.tournament?._id, teamA: m.teamA?._id, teamB: m.teamB?._id, scoreA: m.scoreA ?? 0, scoreB: m.scoreB ?? 0, playedOn: idate(m.playedOn) },
+  (o) => api('matches' + (id ? '/' + id : ''), id ? 'PUT' : 'POST', { ...o, scoreA: +o.scoreA, scoreB: +o.scoreB, playedOn: o.playedOn || null }));
+}
+async function del(path, id, label) {
+  const extra = path === 'matches' ? '' : ' Its matches will be deleted too.';
+  if (!confirm(`Delete ${label}?${extra}`)) return;
+  try { await api(path + '/' + id, 'DELETE'); await load(); } catch (e) { alert(e.message); }
+}
+
+load().catch((e) => { $('#app').innerHTML = `<div class="empty">Could not reach the server: ${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>
